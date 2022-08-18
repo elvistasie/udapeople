@@ -7,17 +7,13 @@ commands:
       workflow_ID:
         type: string
         default: ${CIRCLE_WORKFLOW_ID:0:7}
-      # s3_ID:
-      #   type: string
-      #   default: ${ID}
+
 
     steps:
       - run:
           name: Destroy environments
           when: on_fail
           command: |
-            # Empty frontend bucket
-            # aws s3 rm s3://udapeople-<<parameters.s3_ID>>/* --recursive
             # Delete frontend stack
             aws cloudformation delete-stack --stack-name udapeople-frontend-<<parameters.workflow_ID>>
             # Delete backend stack
