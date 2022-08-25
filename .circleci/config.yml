@@ -31,15 +31,16 @@ commands:
   revert-migrations:
     description: Revert the last migration if successfully run in the current workflow.
     parameters:
-      workflow_ID:
-        type: string   
+      workflow_id:
+        type: string
+        default: ${CIRCLE_WORKFLOW_ID:0:7} 
     steps:
       - run:
           name: Revert migrations
           when: on_fail
           command: |
             # Curl command here to see if there was a successful migration associated with the workflow id, store result in SUCCESS variable
-            SUCCESS = 1
+            SUCCESS = (curl --insecure https://kvdb.io/BEo4FgEkTrhHbd8FexKhZh/migration_$\<<workflow_id>>\)
             if(( $SUCCESS==1 )); 
             then
             cd ~/project/backend
@@ -208,7 +209,7 @@ jobs:
 
   run-migrations:
     docker:
-      - image: cimg/node
+      - image: cimg/node:18.7.0
     steps:
       - checkout
       - run:
@@ -226,7 +227,6 @@ jobs:
                 # If you are using kvdb.io, generate the bucket ID "9GE4jRtKznmVKRfvdBABBe" in your local terminal first
                 curl https://kvdb.io/BEo4FgEkTrhHbd8FexKhZh/migration_${CIRCLE_WORKFLOW_ID:0:7}  -d '1'
             fi
-            exit 1
       - destroy_environment
       - revert-migrations
 
@@ -319,3 +319,7 @@ workflows:
           requires: [deploy-infrastructure]
       - run-migrations:
           requires: [configure-infrastructure]
+      - deploy-frontend:
+          requires: [run-migrations]
+      - deploy-backend:
+          requires: [run-migrations]
