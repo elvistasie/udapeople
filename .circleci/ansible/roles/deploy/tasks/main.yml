@@ -1,0 +1,43 @@
+---
+- name: extract artifact
+  unarchive: 
+    src: ~/project/artifact.tar.gz
+    dest: /home/ubuntu
+
+- name: 'update apt packages'
+  become: yes
+  apt:
+    update_cache: yes
+
+- name: 'upgrade packages'
+  become: yes
+  apt:
+    upgrade: yes
+
+- name: remove dependencies that are no longer required
+  become: yes
+  apt:
+    autoremove: yes
+
+- name: 'install depencies'
+  become: true
+  apt:
+    name: ['nodejs', 'npm', 'tar', 'gzip', 'python3']
+    state: latest
+    update_cache: yes
+
+- name: "install pm2"
+  become: true
+  npm:
+    npm: pm2
+    global: yes
+    production: yes
+    state: present
+
+- name: "stop default"
+  become: yes
+  command: pm2 stop default
+
+- name: "start the app"
+  become: yes
+  command: pm2 start npm -- start

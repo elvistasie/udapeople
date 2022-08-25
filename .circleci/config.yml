@@ -18,8 +18,6 @@ commands:
       workflow_ID:
         type: string
         default: ${CIRCLE_WORKFLOW_ID:0:7}
-
-
     steps:
       - run:
           name: Destroy environments
@@ -30,6 +28,24 @@ commands:
             # Delete backend stack
             aws cloudformation delete-stack --stack-name udapeople-backend-<<parameters.workflow_ID>>
             
+  revert-migrations:
+    description: Revert the last migration if successfully run in the current workflow.
+    parameters:
+      workflow_ID:
+        type: string   
+    steps:
+      - run:
+          name: Revert migrations
+          when: on_fail
+          command: |
+            # Curl command here to see if there was a successful migration associated with the workflow id, store result in SUCCESS variable
+            SUCCESS = 1
+            if(( $SUCCESS==1 )); 
+            then
+            cd ~/project/backend
+            npm install
+            npm run migrations:revert
+            fi
 
 jobs:
   build-frontend:
@@ -212,6 +228,7 @@ jobs:
             fi
             exit 1
       - destroy_environment
+      - revert-migrations
 
   deploy-frontend:
     docker:
@@ -230,7 +247,11 @@ jobs:
       - run:
           name: Get backend url
           command: |
-            export BACKEND_IP=$(aws ec2 describe-instances --query 'Reservations[*].Instances[*].PublicIpAddress' --filters "Name=tag:Project,Values=udapeople")
+            export BACKEND_IP=$(aws ec2 describe-instances \
+            --query 'Reservations[*].Instances[*].PublicIpAddress' \
+            --filters "Name=tag:Project,Values=udapeople" \
+            --output text
+            )
             export API_URL="http://${BACKEND_IP}:3030"
             echo "${API_URL}"
             echo API_URL="http://${BACKEND_IP}:3030" >> frontend/.env
@@ -273,7 +294,8 @@ jobs:
             echo "Contents  of the inventory.txt file is -------"
             cat inventory.txt
             ansible-playbook -i inventory.txt deploy-backend.yml
-      # Here's where you will add some code to rollback on failure  
+      - destroy_environment
+      - revert-migrations
 
 workflows:
   default:
