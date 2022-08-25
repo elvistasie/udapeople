@@ -41,7 +41,7 @@ commands:
           command: |
             # Curl command here to see if there was a successful migration associated with the workflow id, store result in SUCCESS variable
             SUCCESS = curl --insecure https://kvdb.io/68aVo6poCVsmYdgqgoTySW/migration_$\<<workflow_id>>\
-            if(( $SUCCESS==1 )); 
+            if (( $SUCCESS==1 )); 
             then
             cd ~/project/backend
             npm install
@@ -314,6 +314,7 @@ jobs:
           name: Install dependencies
           command: |
             apk add --update nodejs npm
+            apk add --update curl
             apk add --no-cache \
                 python3 \
                 py3-pip \
