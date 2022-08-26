@@ -19,7 +19,7 @@
   apt:
     autoremove: yes
 
-- name: 'install nodejs'
+- name: 'install dependencies'
   become: true
   apt:
     name: ['nodejs', 'tar', 'gzip', 'python3']
@@ -32,7 +32,7 @@
 - name: "install pm2"
   become: true
   npm:
-    npm: pm2
+    name: pm2
     global: yes
     production: yes
     state: present
