@@ -31,7 +31,7 @@ commands:
           when: on_fail
           command: |
             # Curl command here to see if there was a successful migration associated with the workflow id, store result in SUCCESS variable
-            SUCCESS = ${curl --insecure https://kvdb.io/68aVo6poCVsmYdgqgoTySW/migration_$\<<workflow_id>>}
+            SUCCESS = ${curl --insecure https://kvdb.io/68aVo6poCVsmYdgqgoTySW/migration_$\<<parameters.workflow_id>>}
             echo $SUCCESS
             if[[ $SUCCESS==1 ]]
             then
@@ -285,6 +285,13 @@ jobs:
           command: |
             apk add --update ansible
             apk add --update nodejs npm
+            apk add --no-cache \
+                python3 \
+                py3-pip \
+            &&  pip3 install --upgrade pip \
+            &&  pip3 install \
+                  awscli \
+            && rm -rf /var/cache/apk/*
       - run:
           name: Deploy backend
           command: |
