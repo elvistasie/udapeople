@@ -18,16 +18,13 @@ commands:
       workflow_ID:
         type: string
         default: ${CIRCLE_WORKFLOW_ID:0:7}
-      bucket-name:
-        type: string
-        default: udapeople-${ID}
     steps:
       - run:
           name: Destroy environments
           when: on_fail
           command: |
             # Empty aws bucket
-            aws s3 rm s3://<<parameters.bucket-name>> --recursive
+            aws s3 rm s3://<<udapeople-parameters.workflow_ID>> --recursive
             # Delete frontend stack
             aws cloudformation delete-stack --stack-name udapeople-frontend-<<parameters.workflow_ID>>
             # Delete backend stack
@@ -45,13 +42,13 @@ commands:
           when: on_fail
           command: |
             # Curl command here to see if there was a successful migration associated with the workflow id, store result in SUCCESS variable
-            SUCCESS = $(curl --insecure https://kvdb.io/68aVo6poCVsmYdgqgoTySW/migration_$\<<workflow_id>>\)
+            SUCCESS = ${curl --insecure https://kvdb.io/68aVo6poCVsmYdgqgoTySW/migration_$\<<workflow_id>>}
             echo $SUCCESS
             if[[ $SUCCESS==1 ]]
             then
-            cd ~/project/backend
-            npm install
-            npm run migrations:revert
+              cd ~/project/backend
+              npm install
+              npm run migrations:revert
             fi
 
 jobs:
@@ -234,10 +231,11 @@ jobs:
             if grep -q "has been executed successfully." ~/project/backend/migrations_dump.txt
             then
             # If you are using kvdb.io, generate the bucket ID "9GE4jRtKznmVKRfvdBABBe" in your local terminal first
-            curl https://kvdb.io/68aVo6poCVsmYdgqgoTySW/migration_${CIRCLE_WORKFLOW_ID:0:7}  -d '1'
+              curl https://kvdb.io/68aVo6poCVsmYdgqgoTySW/migration_${CIRCLE_WORKFLOW_ID:0:7}  -d '1'
             fi
-      - destroy_environment
       - revert-migrations
+      - destroy_environment
+      
 
   deploy-frontend:
     docker:
@@ -334,6 +332,11 @@ jobs:
       - run:
           name: Get backend url
           command: |
+            export BACKEND_IP=$(aws ec2 describe-instances \
+            --query 'Reservations[*].Instances[*].PublicIpAddress' \
+            --filters "Name=tag:project,Values=udapeople" \
+            --output text
+            )
             export API_URL="http://${BACKEND_IP}:3030"
             echo "${API_URL}"
             if curl "${API_URL}/api/status" | grep "ok"
