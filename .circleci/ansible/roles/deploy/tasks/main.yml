@@ -19,40 +19,17 @@
   apt:
     autoremove: yes
 
-- name: 'install dependencies'
+- name: 'install nodejs'
   become: true
   apt:
-    name: ['nodejs']
+    name: ['nodejs', 'tar', 'gzip', 'python3']
     state: latest
     update_cache: yes
 
-- name: 'install dependencies'
-  become: true
-  apt:
-    name: ['npm']
-    state: latest
-    update_cache: yes
-
-- name: 'install dependencies'
-  become: true
-  apt:
-    name: ['tar']
-    state: latest
-    update_cache: yes
-
-- name: 'install dependencies'
-  become: true
-  apt:
-    name: ['gzip']
-    state: latest
-    update_cache: yes
-
-- name: 'install dependencies'
-  become: true
-  apt:
-    name: ['python3']
-    state: latest
-    update_cache: yes
+- name: install NPM
+    shell: npm i
+    args:
+      chdir: /home/ubuntu
 
 - name: "install pm2"
   become: true
