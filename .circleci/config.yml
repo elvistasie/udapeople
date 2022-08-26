@@ -40,8 +40,8 @@ commands:
           when: on_fail
           command: |
             # Curl command here to see if there was a successful migration associated with the workflow id, store result in SUCCESS variable
-            SUCCESS = curl --insecure https://kvdb.io/68aVo6poCVsmYdgqgoTySW/migration_$\<<workflow_id>>\
-            if (( $SUCCESS==1 )); 
+            SUCCESS = $(curl --insecure https://kvdb.io/68aVo6poCVsmYdgqgoTySW/migration_$\<<workflow_id>>\)
+            if(( $SUCCESS==1 )); 
             then
             cd ~/project/backend
             npm install
@@ -171,7 +171,8 @@ jobs:
             aws ec2 describe-instances \
               --query 'Reservations[*].Instances[*].PublicIpAddress' \
               --filters "Name=tag:Project,Values=udapeople" \
-              --output text >> inventory.txt
+              --output text >> project/.circleci/ansible/inventory.txt
+            cat project/.circleci/ansible/inventory.txt
       - persist_to_workspace:
           root: ~/
           paths:
@@ -376,8 +377,8 @@ workflows:
           filters:
             branches:
               only: [main]
-      - configure-infrastructure:
-          requires: [deploy-infrastructure]
+      # - configure-infrastructure:
+      #     requires: [deploy-infrastructure]
       # - run-migrations:
       #     requires: [configure-infrastructure]
       # - deploy-frontend:
