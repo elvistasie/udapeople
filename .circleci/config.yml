@@ -18,11 +18,16 @@ commands:
       workflow_ID:
         type: string
         default: ${CIRCLE_WORKFLOW_ID:0:7}
+      bucket-name:
+        type: string
+        default: udapeople-${ID}
     steps:
       - run:
           name: Destroy environments
           when: on_fail
           command: |
+            # Empty aws bucket
+            aws s3 rm s3://<<parameters.bucket-name>> --recursive
             # Delete frontend stack
             aws cloudformation delete-stack --stack-name udapeople-frontend-<<parameters.workflow_ID>>
             # Delete backend stack
@@ -157,22 +162,24 @@ jobs:
               --tags project=udapeople \
               --stack-name "udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}" \
               --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"  
-      - run:
-          name: Ensure front-end infrastructure exist
-          command: |
-            aws cloudformation deploy \
-              --template-file .circleci/files/frontend.yml \
-              --tags project=udapeople \
-              --stack-name "udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}" \
-              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"  
+      # - run:
+      #     name: Ensure front-end infrastructure exist
+      #     command: |
+      #       aws cloudformation deploy \
+      #         --template-file .circleci/files/frontend.yml \
+      #         --tags project=udapeople \
+      #         --stack-name "udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}" \
+      #         --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"  
       - run:
           name: Add back-end ip to ansible inventory
           command: |
+            cd .circleci/ansible
             aws ec2 describe-instances \
               --query 'Reservations[*].Instances[*].PublicIpAddress' \
               --filters "Name=tag:project,Values=udapeople" \
               --output text >> inventory.txt
             cat inventory.txt
+            cd ..
       - persist_to_workspace:
           root: ~/
           paths:
@@ -362,28 +369,24 @@ jobs:
 workflows:
   default:
     jobs:
-      - build-frontend
-      - build-backend
-      - test-frontend:
-          requires: [build-frontend]
-      - test-backend:
-          requires: [build-backend]
-      - scan-backend:
-          requires: [build-backend]
-      - scan-frontend:
-          requires: [build-frontend]
-      - deploy-infrastructure:
-          requires: [test-frontend, test-backend, scan-frontend, scan-backend]
-          filters:
-            branches:
-              only: [main]
+      # - build-frontend
+      # - build-backend
+      # - test-frontend:
+      #     requires: [build-frontend]
+      # - test-backend:
+      #     requires: [build-backend]
+      # - scan-backend:
+      #     requires: [build-backend]
+      # - scan-frontend:
+      #     requires: [build-frontend]
+      - deploy-infrastructure
       - configure-infrastructure:
           requires: [deploy-infrastructure]
-      - run-migrations:
-          requires: [configure-infrastructure]
-      - deploy-frontend:
-          requires: [run-migrations]
-      - deploy-backend:
-          requires: [run-migrations]
-      - smoke-test:
-          requires: [deploy-backend, deploy-frontend]
+      # - run-migrations:
+      #     requires: [configure-infrastructure]
+      # - deploy-frontend:
+      #     requires: [run-migrations]
+      # - deploy-backend:
+      #     requires: [run-migrations]
+      # - smoke-test:
+      #     requires: [deploy-backend, deploy-frontend]
