@@ -284,6 +284,7 @@ jobs:
           name: Install dependencies
           command: |
             apk add --update ansible
+            apk add --update curl
             apk add --update nodejs npm
             apk add --no-cache \
                 python3 \
