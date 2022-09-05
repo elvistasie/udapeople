@@ -227,7 +227,7 @@ jobs:
       #       echo "successfully executed"
       #       curl https://kvdb.io/68aVo6poCVsmYdgqgoTySW/migration_${CIRCLE_WORKFLOW_ID:0:7}  -d '1'
       #       fi
-      # - revert-migrations
+      - revert-migrations
       - destroy_environment
       
 
