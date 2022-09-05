@@ -34,12 +34,10 @@
   npm:
     name: pm2
     global: yes
-    production: yes
-    state: present
 
-- name: "stop default"
-  become: yes
-  command: pm2 stop default
+# - name: "stop default"
+#   become: yes
+#   command: pm2 stop default
 
 - name: "start the app"
   become: yes
