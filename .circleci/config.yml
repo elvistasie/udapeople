@@ -208,18 +208,23 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Run migrations
+          name: npm install
           command: |
             cd backend
             npm install
             # Run and save the migration output
+      - run:
+          name: Run migrations
+          command: |
+            cd backend
             npm run migrations > migrations_dump.txt
       - run:
           name: Send migration results to kvdb
           command: |
             if grep -q "has been executed successfully." ~/project/backend/migrations_dump.txt
             then
-              curl https://kvdb.io/68aVo6poCVsmYdgqgoTySW/migration_${CIRCLE_WORKFLOW_ID:0:7}  -d '1'
+            echo "successfully executed"
+            curl https://kvdb.io/68aVo6poCVsmYdgqgoTySW/migration_${CIRCLE_WORKFLOW_ID:0:7}  -d '1'
             fi
       - revert-migrations
       - destroy_environment
@@ -388,9 +393,9 @@ workflows:
           requires: [deploy-infrastructure]
       - run-migrations:
           requires: [configure-infrastructure]
-      - deploy-frontend:
-          requires: [run-migrations]
-      - deploy-backend:
-          requires: [run-migrations]
-      - smoke-test:
-          requires: [deploy-backend, deploy-frontend]
+      # - deploy-frontend:
+      #     requires: [run-migrations]
+      # - deploy-backend:
+      #     requires: [run-migrations]
+      # - smoke-test:
+      #     requires: [deploy-backend, deploy-frontend]
