@@ -1,4 +1,9 @@
 ---
+- name: Make backend-app directory
+  file:
+    path: /home/ubuntu/backend-app
+    state: directory
+
 - name: extract artifact
   unarchive: 
     src: ~/project/artifact.tar.gz
@@ -35,10 +40,22 @@
     name: pm2
     global: yes
 
+- name: install backend-app dependencies
+  become: true
+  shell: |
+    cd /home/ubuntu/backend-app
+    npm install
+
 # - name: "stop default"
 #   become: yes
 #   command: pm2 stop default
 
 - name: "start the app"
   become: yes
-  command: pm2 start npm -- start
+  shell: |
+    cd /home/ubuntu/backend-app
+    pm2 start npm -- start
+  register: backend_app
+
+- debug:
+    msg: "{{ backend_app.stdout_lines }}"

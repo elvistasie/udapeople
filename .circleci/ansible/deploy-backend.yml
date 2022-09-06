@@ -10,8 +10,6 @@
     - ansible_stdout_callback: yaml
   
   environment:
-    - NODE_ENV: production
-    - VERSION: "1"
     - TYPEORM_CONNECTION: "{{ lookup('env', 'TYPEORM_CONNECTION')}}"  
     - TYPEORM_ENTITIES: "{{ lookup('env', 'TYPEORM_ENTITIES')}}"
     - TYPEORM_HOST: "{{ lookup('env', 'TYPEORM_HOST')}}"
@@ -21,6 +19,10 @@
     - TYPEORM_DATABASE: "{{ lookup('env', 'TYPEORM_DATABASE')}}"
     - TYPEORM_MIGRATIONS: "{{ lookup('env', 'TYPEORM_MIGRATIONS')}}"
     - TYPEORM_MIGRATIONS_DIR: "{{ lookup('env', 'TYPEORM_MIGRATIONS_DIR')}}"
+    - AWS_ACCESS_KEY_ID: "{{ lookup('env', 'AWS_ACCESS_KEY_ID')}}"
+    - AWS_SECRET_ACCESS_KEY: "{{ lookup('env', 'AWS_SECRET_ACCESS_KEY')}}"
+    - AWS_DEFAULT_REGION: "{{ lookup('env', 'AWS_DEFAULT_REGION'}}"
+
   
   pre_tasks:
     - name: "wait 600 seconds for target connection to become reachable/usable."
