@@ -37,12 +37,7 @@ commands:
             if(( $SUCCESS==0 ));
             then
               cd ~/project/backend
-              npm cache clean --force
-              sudo rm -rf node-modules
-              sudo rm package-lock.json
               npm install
-              npm audit fix --force
-              npm audit fix --audit-level=critical
               npm run migrations:revert
             fi
 
