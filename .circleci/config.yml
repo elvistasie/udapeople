@@ -395,7 +395,7 @@ jobs:
           name: Install dependencies
           command: |
             yum install -y tar gzip
-            sudo apt-get install nodejs
+            apt-get install nodejs
       # - run:
       #     name: Update cloudfront distribution
       #     command: |
