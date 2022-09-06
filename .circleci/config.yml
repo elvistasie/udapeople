@@ -388,52 +388,59 @@ jobs:
 
   cloudfront-update:
     docker:
-      - image: amazon/aws-cli
+      - image: python:3.7-alpine3.11
     steps:
       - checkout
       - run:
           name: Install dependencies
           command: |
-            yum install -y tar gzip
-            apt-get install nodejs
-      # - run:
-      #     name: Update cloudfront distribution
-      #     command: |
-      #       aws cloudformation deploy \
-      #             --template-file .circleci/files/cloudfront.yml \
-      #             --stack-name InitialStack \
-      #             --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}" \
-      #             --tags project=udapeople
-      # - destroy_environment
-      # - revert-migrations 
+            apk add --update nodejs npm
+            apk add --update curl
+            apk add --no-cache \
+                python3 \
+                py3-pip \
+            &&  pip3 install --upgrade pip \
+            &&  pip3 install \
+                  awscli \
+            && rm -rf /var/cache/apk/*
+      - run:
+          name: Update cloudfront distribution
+          command: |
+            aws cloudformation deploy \
+                  --template-file .circleci/files/cloudfront.yml \
+                  --stack-name InitialStack \
+                  --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}" \
+                  --tags project=udapeople
+      - destroy_environment
+      - revert-migrations 
 
 workflows:
   default:
     jobs:
-      # - build-frontend
-      # - build-backend
-      # - test-frontend:
-      #     requires: [build-frontend]
-      # - test-backend:
-      #     requires: [build-backend]
-      # - scan-backend:
-      #     requires: [build-backend]
-      # - scan-frontend:
-      #     requires: [build-frontend]
-      # - deploy-infrastructure:
-      #     requires: [test-frontend, test-backend, scan-frontend, scan-backend]
-      #     filters:
-      #       branches:
-      #         only: [main]
-      # - configure-infrastructure:
-      #     requires: [deploy-infrastructure]
-      # - run-migrations:
-      #     requires: [configure-infrastructure]
-      # - deploy-frontend:
-      #     requires: [run-migrations]
-      # - deploy-backend:
-      #     requires: [run-migrations]
-      # - smoke-test:
-      #     requires: [deploy-backend, deploy-frontend]
-      - cloudfront-update
-          # requires: [smoke-test]
+      - build-frontend
+      - build-backend
+      - test-frontend:
+          requires: [build-frontend]
+      - test-backend:
+          requires: [build-backend]
+      - scan-backend:
+          requires: [build-backend]
+      - scan-frontend:
+          requires: [build-frontend]
+      - deploy-infrastructure:
+          requires: [test-frontend, test-backend, scan-frontend, scan-backend]
+          filters:
+            branches:
+              only: [main]
+      - configure-infrastructure:
+          requires: [deploy-infrastructure]
+      - run-migrations:
+          requires: [configure-infrastructure]
+      - deploy-frontend:
+          requires: [run-migrations]
+      - deploy-backend:
+          requires: [run-migrations]
+      - smoke-test:
+          requires: [deploy-backend, deploy-frontend]
+      - cloudfront-update:
+          requires: [smoke-test]
