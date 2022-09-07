@@ -426,9 +426,21 @@ jobs:
 
   cleanup:
       docker:
-        - image: amazon/aws-cli
+        - image: python:3.7-alpine3.11
       steps:
         - checkout
+      - run:
+          name: Install dependencies
+          command: |
+            apk add --update nodejs npm
+            apk add --update curl
+            apk add --no-cache \
+                python3 \
+                py3-pip \
+            &&  pip3 install --upgrade pip \
+            &&  pip3 install \
+                  awscli \
+            && rm -rf /var/cache/apk/*
         - run:
             name: Get old stack workflow id
             command: |
@@ -444,15 +456,13 @@ jobs:
         - run:
             name: Remove old stacks and files
             command: |
-              if [[ "${STACKS[@]}" =~ "${OldWorkflowID}" ]]
+              if [[ "${STACKS[@]}" =~ "${OldWorkflowID}" ]] && if aws s3api head-bucket --bucket udapeople-${OldWorkflowID} --region us-east-1 
               then
-                if aws s3api head-bucket --bucket udapeople-${OldWorkflowID} --region us-east-1 
-                then
-                  aws s3 rm "s3://udapeople-${OldWorkflowID}" --recursive
-                  aws cloudformation delete-stack --stack-name "udapeople-backend-${OldWorkflowID}"
-                  aws cloudformation delete-stack --stack-name "udapeople-frontend-${OldWorkflowID}"
+                aws s3 rm "s3://udapeople-${OldWorkflowID}" --recursive
+                aws cloudformation delete-stack --stack-name "udapeople-backend-${OldWorkflowID}"
+                aws cloudformation delete-stack --stack-name "udapeople-frontend-${OldWorkflowID}"
               fi
-        - revert-migrations 
+        # - revert-migrations 
 
 workflows:
   default:
@@ -472,18 +482,18 @@ workflows:
       #     filters:
       #       branches:
       #         only: [main]
-      - deploy-infrastructure
-      - configure-infrastructure:
-          requires: [deploy-infrastructure]
-      - run-migrations:
-          requires: [configure-infrastructure]
-      - deploy-frontend:
-          requires: [run-migrations]
-      - deploy-backend:
-          requires: [run-migrations]
-      - smoke-test:
-          requires: [deploy-backend, deploy-frontend]
-      - cloudfront-update:
-          requires: [smoke-test]
-      - cleanup:
-          requires: [cloudfront-update]
+      # - deploy-infrastructure
+      # - configure-infrastructure:
+      #     requires: [deploy-infrastructure]
+      # - run-migrations:
+      #     requires: [configure-infrastructure]
+      # - deploy-frontend:
+      #     requires: [run-migrations]
+      # - deploy-backend:
+      #     requires: [run-migrations]
+      # - smoke-test:
+      #     requires: [deploy-backend, deploy-frontend]
+      # - cloudfront-update:
+      #     requires: [smoke-test]
+      - cleanup
+          # requires: [cloudfront-update]
