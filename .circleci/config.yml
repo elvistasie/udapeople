@@ -257,7 +257,7 @@ jobs:
               echo "migrations_dump.txt's content is: "
               cat migrations_dump.txt
               curl https://kvdb.io/68aVo6poCVsmYdgqgoTySW/migration_${CIRCLE_WORKFLOW_ID:0:7}  -d '0'
-              
+              exit 1
             fi
             
       - revert-migrations
