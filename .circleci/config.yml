@@ -425,10 +425,10 @@ jobs:
       - revert-migrations 
 
   cleanup:
-      docker:
-        - image: python:3.7-alpine3.11
-      steps:
-        - checkout
+    docker:
+      - image: python:3.7-alpine3.11
+    steps:
+      - checkout
       - run:
           name: Install dependencies
           command: |
