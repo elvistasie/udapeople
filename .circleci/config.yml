@@ -449,7 +449,7 @@ jobs:
               echo "Removing old stacks"
 
               # check if bucket exists for current OLD_WORKFLOW_ID
-              if aws s3api head-bucket --bucket s3://udapeople-${OldWorkflowID} --region us-east-1 
+              if aws s3api head-bucket --bucket "udapeople-${OldWorkflowID}" --region us-east-1 2>/dev/null
               then
                 echo "Bucket exists"
                 # Empty the bucket
