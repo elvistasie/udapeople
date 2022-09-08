@@ -291,7 +291,7 @@ jobs:
           command: |
             export BACKEND_IP=$(aws ec2 describe-instances \
             --query 'Reservations[*].Instances[*].PublicIpAddress' \
-            --filters "Name=tag:project,Values=udapeople" \
+            --filters "Name=tag:Name,Values=backend-{CIRCLE_WORKFLOW_ID:0:7}" \
             --output text
             )
             export API_URL="http://${BACKEND_IP}:3030"
@@ -370,7 +370,7 @@ jobs:
           command: |
             export BACKEND_IP=$(aws ec2 describe-instances \
             --query 'Reservations[*].Instances[*].PublicIpAddress' \
-            --filters "Name=tag:project,Values=udapeople" \
+            --filters "Name=tag:Name,Values=backend-{CIRCLE_WORKFLOW_ID:0:7}" \
             --output text
             )
             export API_URL="http://${BACKEND_IP}:3030"
@@ -426,21 +426,9 @@ jobs:
 
   cleanup:
     docker:
-      - image: python:3.7-alpine3.11
+      - image: amazon/aws-cli
     steps:
       - checkout
-      - run:
-          name: Install dependencies
-          command: |
-            apk add --update nodejs npm
-            apk add --update curl
-            apk add --no-cache \
-                python3 \
-                py3-pip \
-            &&  pip3 install --upgrade pip \
-            &&  pip3 install \
-                  awscli \
-            && rm -rf /var/cache/apk/*
       - run:
           name: Get old stack workflow id
           command: |
@@ -450,18 +438,30 @@ jobs:
               --no-paginate --output text)
             echo OldWorkflowID: "${OldWorkflowID}"
             echo CIRCLE_WORKFLOW_ID "${CIRCLE_WORKFLOW_ID:0:7}"
-            export STACKS = ($(aws cloudformation list-stacks --query "StackSummaries[*].StackName" --stack-status-filter CREATE_COMPLETE --no-paginate --output text))
+            export STACKS = ($(aws cloudformation list-stacks --query "StackSummaries[*].StackName" \
+              --stack-status-filter CREATE_COMPLETE --no-paginate --output text))
             echo Stack names: "${STACKS[@]}"
       - run:
           name: Remove old stacks and files 
           command: |
-            if [[ "${STACKS[@]}" =~ "${OldWorkflowID}" ]] && if aws s3api head-bucket --bucket udapeople-${OldWorkflowID} --region us-east-1 
+            if [[ "${STACKS[@]}" =~ "${OldWorkflowID}" ]] 
             then
-              aws s3 rm "s3://udapeople-${OldWorkflowID}" --recursive
+              echo "Removing old stacks"
+
+              # check if bucket exists for current OLD_WORKFLOW_ID
+              if aws s3api head-bucket --bucket udapeople-${OldWorkflowID} --region us-east-1 
+              then
+                echo "Bucket exists"
+                # Empty the bucket
+                aws s3 rm "s3://udapeople-${OldWorkflowID}" --recursive
+              else
+                echo "Bucket does not exist"
+              fi
               aws cloudformation delete-stack --stack-name "udapeople-backend-${OldWorkflowID}"
               aws cloudformation delete-stack --stack-name "udapeople-frontend-${OldWorkflowID}"
+            else
+              echo "No old stacks to remove"
             fi
-      # - revert-migrations 
 
 workflows:
   default:
