@@ -443,23 +443,29 @@ jobs:
             echo Stack names: "${STACKS[@]}"
 
             # Remove old stacks and files
-            if [[ "${STACKS[@]}" =~ "${OldWorkflowID}" ]] && if [[ "${OLD_WORKFLOW_ID}" != "${CIRCLE_WORKFLOW_ID:0:7}"]]
+            if [[ "${STACKS[@]}" =~ "${OldWorkflowID}" ]] 
             then
-              echo "Removing old stacks"
-
-              # check if bucket exists for current OLD_WORKFLOW_ID
-              if aws s3api head-bucket --bucket "udapeople-${OldWorkflowID}" 
+              echo "Old stacks exist"
+              if [[ "${OLD_WORKFLOW_ID}" != "${CIRCLE_WORKFLOW_ID:0:7}"]]
               then
-                echo "Bucket exists"
-                # Empty the bucket
-                aws s3 rm "s3://udapeople-${OldWorkflowID}" --recursive
+                echo "Removing old stacks"
+
+                # check if bucket exists for current OLD_WORKFLOW_ID
+                if aws s3api head-bucket --bucket "udapeople-${OldWorkflowID}" 
+                then
+                  echo "Bucket exists"
+                  # Empty the bucket
+                  aws s3 rm "s3://udapeople-${OldWorkflowID}" --recursive
+                else
+                  echo "Bucket does not exist"
+                fi
+                aws cloudformation delete-stack --stack-name "udapeople-backend-${OldWorkflowID}"
+                aws cloudformation delete-stack --stack-name "udapeople-frontend-${OldWorkflowID}"
               else
-                echo "Bucket does not exist"
+                echo "No old stacks to remove"
               fi
-              aws cloudformation delete-stack --stack-name "udapeople-backend-${OldWorkflowID}"
-              aws cloudformation delete-stack --stack-name "udapeople-frontend-${OldWorkflowID}"
             else
-              echo "No old stacks to remove"
+              echo "No old stacks exist"
             fi
 
 workflows:
