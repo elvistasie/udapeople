@@ -13,6 +13,6 @@
 - name: "start the app"
   become: yes
   shell: |
-    cd /home/ubuntu/node_exporter/node_exporter-1.0.1.linux-amd64.tar.gz
+    cd /home/ubuntu/node_exporter/node_exporter-1.0.1.linux-amd64
     ./node_exporter
   register: node_exporter
