@@ -262,7 +262,6 @@ jobs:
             
       - revert-migrations
       - destroy_environment
-      
 
   deploy-frontend:
     docker:
