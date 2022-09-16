@@ -414,6 +414,16 @@ jobs:
                   awscli \
             && rm -rf /var/cache/apk/*
       - run:
+          name: Get old stack workflow id
+          command: |
+            aws cloudformation \
+              list-exports --query "Exports[?Name==\`WorkflowID\`].Value" \
+              --no-paginate --output >> OldWorkflowID.txt
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - project/OldWorkflowID.txt
+      - run:
           name: Update cloudfront distribution
           command: |
             aws cloudformation deploy \
@@ -429,13 +439,14 @@ jobs:
       - image: amazon/aws-cli
     steps:
       - checkout
+      - attach_workspace:
+          at: ~/
       - run:
           name: Get old stack workflow id and Remove old stacks and files
           command: |
             # your code here
-            export OldWorkflowID=$(aws cloudformation \
-              list-exports --query "Exports[?Name==\`WorkFlowID-${CIRCLE_WORKFLOW_ID:0:3}\`].Value" \
-              --no-paginate --output text)
+            cat ~/OldWorkflowID.txt
+            OldWorkflowID=$(cat ~/OldWorkflowID.txt)
             echo OldWorkflowID: "${OldWorkflowID}"
             echo CIRCLE_WORKFLOW_ID "${CIRCLE_WORKFLOW_ID:0:7}"
             export STACKS=($(aws cloudformation list-stacks --query "StackSummaries[*].StackName" \
